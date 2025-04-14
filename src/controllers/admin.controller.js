@@ -8,6 +8,7 @@ import { adsModel } from "../models/advertisement.model.js";
 import { userModel } from "../models/user.models.js";
 import { adminpostModel } from "../models/adminPost.model.js";
 
+
 const registerAdmin = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -245,4 +246,17 @@ console.log(2);
       new ApiResponse(201, { post }, "post created successfully")
     );
 });
-export { registerAdmin, loginAdmin, getAdmin, logoutAdmin, adminDashboardStats, createPost };
+
+const getPost = asyncHandler(async (req, res) => {
+    const posts = await adminpostModel.find()
+      .populate('createdBy', 'name email') // Populate admin details
+      .sort({ createdAt: -1 }); // Newest first
+
+      if(!posts) {
+        throw new ApiError(404, "error while fetching posts");
+      }
+
+    res.status(200).json(new ApiResponse(200, posts, "Posts fetched successfully"));
+
+});
+export { registerAdmin, loginAdmin, getAdmin, logoutAdmin, adminDashboardStats, createPost, getPost };
