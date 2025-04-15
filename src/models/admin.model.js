@@ -24,7 +24,6 @@ const adminSchema = new mongoose.Schema(
     },
     avatar: {
       type: String, // cloudinary url
-      required: true,
     }
   },
   { timestamps: true }

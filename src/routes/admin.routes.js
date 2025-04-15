@@ -4,7 +4,7 @@ import { registerAdmin, loginAdmin, getAdmin, logoutAdmin, adminDashboardStats, 
 import { authAdmin } from "../middlewares/auth.middleware.js";
 
 const router = Router();
-router.route("/register").post(upload.single('image'),registerAdmin);
+router.route("/register").post(registerAdmin);
 
 router.route("/login").post(loginAdmin);
 

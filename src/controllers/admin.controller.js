@@ -22,27 +22,12 @@ const registerAdmin = asyncHandler(async (req, res) => {
     throw new ApiError(401, "admin already exists");
   }
 
-  const avatarLocalpath = req.file?.path;
-
-  if (!avatarLocalpath) {
-    throw new ApiError(402, "avatar file is required");
-  }
-
-  const avatar = await uploadOnCloudinary(avatarLocalpath);
-
-  console.log(avatar);
-
-  if (!avatar) {
-    throw new ApiError(403, "Avatar file is Required");
-  }
-
   const hashedPassword = await adminModel.hashPassword(password);
 
   const admin = await adminModel.create({
     name,
     email,
-    password: hashedPassword,
-    avatar: avatar.url,
+    password: hashedPassword
   });
   // console.log(admin);
 
