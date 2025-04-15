@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { upload } from "../middlewares/multer.middleware.js";
-import { registerUser, loginUser, getUser, logoutUser, createPost } from "../controllers/user.controller.js";
-import { authUser } from "../middlewares/auth.middleware.js";
+import { registerUser, loginUser, getUser, logoutUser, createPost} from "../controllers/user.controller.js";
+import { authAdmin, authUser } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 router.route("/registeruser").post(upload.single('avatar'),registerUser);

@@ -9,7 +9,9 @@ import { postModel } from "../models/post.model.js";
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, role, country } = req.body;
 
-  if ([name, email, password, role, country].some((field) => field?.trim() === "")) {
+  if (
+    [name, email, password, role, country].some((field) => field?.trim() === "")
+  ) {
     throw new ApiError(400, "all fields are required");
   }
 
@@ -73,7 +75,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const user = await userModel.findOne({ role, email });
 
   console.log(user);
-  
+
   if (!user) {
     throw new ApiError(404, "invalid email or password");
   }
@@ -97,36 +99,36 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const getUser = asyncHandler(async (req, res) => {
-    return res
-      .status(200)
-      .json(new ApiResponse(200, req.user, "user fetched successfully"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "user fetched successfully"));
+});
+
+const logoutUser = asyncHandler(async (req, res) => {
+  const token =
+    req.cookies?.token ||
+    (req.headers.authorization?.startsWith("Bearer ")
+      ? req.headers.authorization.replace("Bearer ", "")
+      : undefined);
+
+  if (!token) {
+    throw new ApiError(401, "Unauthorized request");
+  }
+
+  await blacklistModel.create({
+    token,
   });
 
-  const logoutUser = asyncHandler(async (req, res) => {
-    const token =
-      req.cookies?.token ||
-      (req.headers.authorization?.startsWith("Bearer ")
-        ? req.headers.authorization.replace("Bearer ", "")
-        : undefined);
-  
-    if (!token) {
-      throw new ApiError(401, "Unauthorized request");
-    }
-  
-    await blacklistModel.create({
-      token,
-    });
-  
-    const options = {
-      httpOnly: true,
-      secure: true,
-    };
-  
-    return res
-      .status(200)
-      .clearCookie("token", options)
-      .json(new ApiResponse(200, {}, "logged out successfully"));
-  });
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .clearCookie("token", options)
+    .json(new ApiResponse(200, {}, "logged out successfully"));
+});
 
 const createPost = asyncHandler(async (req, res) => {
   const { title, subtitle, content } = req.body;
@@ -164,9 +166,14 @@ const createPost = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(
-      new ApiResponse(201, { post }, "post created successfully")
-    );
+    .json(new ApiResponse(201, { post }, "post created successfully"));
 });
 
-export { registerUser, loginUser, getUser, logoutUser, createPost };
+
+export {
+  registerUser,
+  loginUser,
+  getUser,
+  logoutUser,
+  createPost
+};

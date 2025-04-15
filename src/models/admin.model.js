@@ -22,10 +22,10 @@ const adminSchema = new mongoose.Schema(
         type: String,
         required: [true, "Password is required"],
     },
-    // avatar: {
-    //   type: String, // cloudinary url
-    //   required: true,
-    // }
+    avatar: {
+      type: String, // cloudinary url
+      required: true,
+    }
   },
   { timestamps: true }
 );

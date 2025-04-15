@@ -10,6 +10,8 @@ import { adminpostModel } from "../models/adminPost.model.js";
 
 
 const registerAdmin = asyncHandler(async (req, res) => {
+  console.log(req.body);
+  
   const { name, email, password } = req.body;
 
   if ([name, email, password].some((field) => field?.trim() === "")) {
@@ -22,19 +24,19 @@ const registerAdmin = asyncHandler(async (req, res) => {
     throw new ApiError(400, "admin already exists");
   }
 
-  // const avatarLocalpath = req.file?.path;
+  const avatarLocalpath = req.file?.path;
 
-  // if (!avatarLocalpath) {
-  //   throw new ApiError(400, "avatar file is required");
-  // }
+  if (!avatarLocalpath) {
+    throw new ApiError(400, "avatar file is required");
+  }
 
-  // const avatar = await uploadOnCloudinary(avatarLocalpath);
+  const avatar = await uploadOnCloudinary(avatarLocalpath);
 
-  // console.log(avatar);
+  console.log(avatar);
 
-  // if (!avatar) {
-  //   throw new ApiError(400, "Avatar file is Required");
-  // }
+  if (!avatar) {
+    throw new ApiError(400, "Avatar file is Required");
+  }
 
   const hashedPassword = await adminModel.hashPassword(password);
 
@@ -42,7 +44,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
     name,
     email,
     password: hashedPassword,
-    // avatar: avatar.url,
+    avatar: avatar.url,
   });
   // console.log(admin);
 
@@ -259,4 +261,19 @@ const getPost = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, posts, "Posts fetched successfully"));
 
 });
-export { registerAdmin, loginAdmin, getAdmin, logoutAdmin, adminDashboardStats, createPost, getPost };
+
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await userModel
+    .find()
+    .select("-password -__v") // Exclude sensitive fields
+    .sort({ createdAt: -1 });
+
+  if (!users) {
+    throw new ApiError(500, "please try again");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, users, "users fetched successfully"));
+});
+export { registerAdmin, loginAdmin, getAdmin, logoutAdmin, adminDashboardStats, createPost, getPost, getAllUsers };
