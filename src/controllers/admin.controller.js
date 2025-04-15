@@ -24,7 +24,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
     throw new ApiError(401, "admin already exists");
   }
 
-  const avatarLocalpath = req.file?.path;
+  const avatarLocalpath = req.file?.buffer;
 
   if (!avatarLocalpath) {
     throw new ApiError(402, "avatar file is required");
@@ -212,7 +212,7 @@ console.log("1");
     throw new ApiError(400, "all fields are required");
   }
 
-  const imageLocalpath = req.file?.path;
+  const imageLocalpath = req.file?.buffer;
 console.log(2);
 
   if (!imageLocalpath) {
