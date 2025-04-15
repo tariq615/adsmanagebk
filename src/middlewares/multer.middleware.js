@@ -1,18 +1,8 @@
 import multer from "multer";
-import { v4 as uuidv4 } from 'uuid';
-import { ApiError } from '../utils/ApiError.js';  // Adjust the path as needed
+import { ApiError } from '../utils/ApiError.js';
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './public/temp');
-  },
-  filename: function (req, file, cb) {
-    const uniqueFilename = `${uuidv4()}-${file.originalname}`;
-    cb(null, uniqueFilename);
-  }
-});
+const storage = multer.memoryStorage(); // Store files in memory (RAM)
 
-// Allow only image files
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image/")) {
     cb(null, true);
