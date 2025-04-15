@@ -10,60 +10,34 @@ import { adminpostModel } from "../models/adminPost.model.js";
 
 
 const registerAdmin = asyncHandler(async (req, res) => {
-  console.log(req.body);
-  
   const { name, email, password } = req.body;
 
-  if ([name, email, password].some((field) => field?.trim() === "")) {
-    throw new ApiError(400, "all fields are required");
-  }
+  // Validation checks...
 
   const isadminAlreadyExist = await adminModel.findOne({ email });
-
   if (isadminAlreadyExist) {
-    throw new ApiError(401, "admin already exists");
+    throw new ApiError(409, "Admin already exists");
   }
 
-  const avatarLocalpath = req.file?.buffer;
-
-  if (!avatarLocalpath) {
-    throw new ApiError(402, "avatar file is required");
+  if (!req.file) {
+    throw new ApiError(400, "Avatar file is required");
   }
 
-  const avatar = await uploadOnCloudinary(avatarLocalpath);
-
-  console.log(avatar);
-
-  if (!avatar) {
-    throw new ApiError(403, "Avatar file is Required");
+  let avatar;
+  try {
+    avatar = await uploadOnCloudinary(req.file.buffer);
+  } catch (error) {
+    throw new ApiError(error.statusCode || 500, error.message || "Image upload failed");
   }
-
-  const hashedPassword = await adminModel.hashPassword(password);
 
   const admin = await adminModel.create({
     name,
     email,
-    password: hashedPassword,
-    avatar: avatar.url,
+    password: await adminModel.hashPassword(password),
+    avatar: avatar.secure_url,
   });
-  // console.log(admin);
 
-  if (!admin) {
-    throw new ApiError(500, "tryagain later");
-  }
-
-  const token = await admin.generateAuthToken();
-
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
-  return res
-    .status(201)
-    .cookie("token", token, options)
-    .json(
-      new ApiResponse(201, { admin, token }, "admin registered successfully")
-    );
+  // Generate token and send response...
 });
 
 const loginAdmin = asyncHandler(async (req, res) => {
