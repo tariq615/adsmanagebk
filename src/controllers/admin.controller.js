@@ -32,7 +32,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
   // console.log(admin);
 
   if (!admin) {
-    throw new ApiError(300, "tryagain later");
+    throw new ApiError(500, "tryagain later");
   }
 
   const token = await admin.generateAuthToken();
