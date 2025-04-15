@@ -204,29 +204,18 @@ const adminDashboardStats = asyncHandler(async (req, res) => {
 
 const createPost = asyncHandler(async (req, res) => {
   const { title, subtitle, content } = req.body;
-console.log("1");
 
   if ([title, subtitle, content].some((field) => field?.trim() === "")) {
     throw new ApiError(400, "all fields are required");
   }
 
-  const imageLocalpath = req.file?.path;
-console.log(2);
-
-  if (!imageLocalpath) {
-    throw new ApiError(400, "image file is required");
+  const fileBuffer = req.file?.buffer;
+  if (!fileBuffer) {
+    throw new ApiError(400, "Image file is required");
   }
 
-  console.log(3)
-  const image = await uploadOnCloudinary(imageLocalpath);
+  const image = await uploadOnCloudinary(fileBuffer);
 
-  // console.log(image);
-
-  if (!image) {
-    throw new ApiError(400, "image file is Required");
-  }
-  console.log(4);
-  
   const post = await adminpostModel.create({
     title,
     subtitle,
@@ -234,18 +223,10 @@ console.log(2);
     image: image.url,
     createdBy: req.admin._id,
   });
-  // console.log(user);
 
-  if (!post) {
-    throw new ApiError(500, "try again later something went wrong");
-  }
-
-  return res
-    .status(201)
-    .json(
-      new ApiResponse(201, { post }, "post created successfully")
-    );
+  res.status(201).json(new ApiResponse(201, { post }, "Post created successfully"));
 });
+
 
 const getPost = asyncHandler(async (req, res) => {
     const posts = await adminpostModel.find()

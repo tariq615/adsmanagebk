@@ -1,7 +1,6 @@
 // cloudinary.js (updated)
 import { v2 as cloudinary } from "cloudinary";
-import fs from 'fs/promises';
-import path from 'path';
+
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -10,41 +9,19 @@ cloudinary.config({
   secure: true // Force HTTPS
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
-  try {
-    if (!localFilePath) {
-      throw new Error("No file path provided");
-    }
 
-    // Verify file exists
-    await fs.access(localFilePath);
-    
-    // Upload to Cloudinary
-    const response = await cloudinary.uploader.upload(localFilePath, {
+export const uploadOnCloudinary = async (fileBuffer) => {
+  try {
+    const base64Image = `data:image/jpeg;base64,${fileBuffer.toString('base64')}`;
+
+    const response = await cloudinary.uploader.upload(base64Image, {
       resource_type: "image",
       folder: "images_folder",
-      use_filename: true,
-      unique_filename: true
     });
-
-    // Cleanup local file
-    await fs.unlink(localFilePath);
-    
-    if (!response.secure_url) {
-      throw new Error("Cloudinary upload failed - no URL returned");
-    }
 
     return response;
   } catch (error) {
-    // Cleanup local file if exists
-    if (localFilePath) {
-      await fs.unlink(localFilePath).catch(cleanupError => {
-        console.error("File cleanup error:", cleanupError);
-      });
-    }
     console.error("Cloudinary upload error:", error);
     throw error;
   }
 };
-
-export { uploadOnCloudinary };
