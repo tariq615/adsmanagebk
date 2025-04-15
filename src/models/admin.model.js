@@ -21,10 +21,10 @@ const adminSchema = new mongoose.Schema(
     password: {
         type: String,
         required: [true, "Password is required"],
-    },
-    avatar: {
-      type: String, // cloudinary url
     }
+    // avatar: {
+    //   type: String// cloudinary url
+    // }
   },
   { timestamps: true }
 );
