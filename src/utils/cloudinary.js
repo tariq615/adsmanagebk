@@ -1,72 +1,50 @@
-// import { v2 as cloudinary } from "cloudinary";
-// import fs from 'fs';
-
-// cloudinary.config({
-//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//   api_key: process.env.CLOUDINARY_API_KEY,
-//   api_secret: process.env.CLOUDINARY_API_SECRET,
-// });
-
-// const uploadOnCloudinary = async (localFilePath) => {
-//   try {
-//     if (!localFilePath) return null;
-
-//     const response = await cloudinary.uploader.upload(localFilePath, {
-//       resource_type: "image",
-//       folder: "images_folder"
-//     });
-
-//     fs.unlinkSync(localFilePath); // remove local file after successful upload
-//     return response;
-//   } catch (error) {
-//     fs.unlinkSync(localFilePath); // remove local file if upload fails
-//     return null;
-//   }
-// };
-
-// export { uploadOnCloudinary };
-
-
-
-import {v2 as cloudinary} from "cloudinary"
-import streamifier from "streamifier";
+// cloudinary.js (updated)
+import { v2 as cloudinary } from "cloudinary";
+import fs from 'fs/promises';
+import path from 'path';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true // Force HTTPS
 });
 
-
-export const uploadOnCloudinary = async (buffer) => {
-  return new Promise((resolve, reject) => {
-    if (!buffer || buffer.length === 0) {
-      reject(new Error("Empty buffer provided"));
-      return;
+const uploadOnCloudinary = async (localFilePath) => {
+  try {
+    if (!localFilePath) {
+      throw new Error("No file path provided");
     }
 
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { resource_type: "image", folder: "images_folder" },
-      (error, result) => {
-        if (error) {
-          console.error("Cloudinary Error:", error.message);
-          reject(new ApiError(500, "Image upload failed"));
-        } else {
-          if (!result?.secure_url) {
-            reject(new ApiError(500, "No URL returned from Cloudinary"));
-          } else {
-            resolve(result);
-          }
-        }
-      }
-    );
-
-    const bufferStream = streamifier.createReadStream(buffer);
-    bufferStream.on('error', (err) => {
-      console.error("Buffer Stream Error:", err);
-      reject(new ApiError(500, "Error processing image"));
+    // Verify file exists
+    await fs.access(localFilePath);
+    
+    // Upload to Cloudinary
+    const response = await cloudinary.uploader.upload(localFilePath, {
+      resource_type: "image",
+      folder: "images_folder",
+      use_filename: true,
+      unique_filename: true
     });
 
-    bufferStream.pipe(uploadStream);
-  });
-}
+    // Cleanup local file
+    await fs.unlink(localFilePath);
+    
+    if (!response.secure_url) {
+      throw new Error("Cloudinary upload failed - no URL returned");
+    }
+
+    return response;
+  } catch (error) {
+    // Cleanup local file if exists
+    if (localFilePath) {
+      await fs.unlink(localFilePath).catch(cleanupError => {
+        console.error("File cleanup error:", cleanupError);
+      });
+    }
+    console.error("Cloudinary upload error:", error);
+    throw error;
+  }
+};
+
+export { uploadOnCloudinary };
