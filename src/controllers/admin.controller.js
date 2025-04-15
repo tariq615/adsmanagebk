@@ -10,8 +10,6 @@ import { adminpostModel } from "../models/adminPost.model.js";
 
 
 const registerAdmin = asyncHandler(async (req, res) => {
-  console.log(req.body);
-  
   const { name, email, password } = req.body;
 
   if ([name, email, password].some((field) => field?.trim() === "")) {
@@ -21,13 +19,13 @@ const registerAdmin = asyncHandler(async (req, res) => {
   const isadminAlreadyExist = await adminModel.findOne({ email });
 
   if (isadminAlreadyExist) {
-    throw new ApiError(401, "admin already exists");
+    throw new ApiError(400, "admin already exists");
   }
 
-  const avatarLocalpath = req.file?.buffer;
+  const avatarLocalpath = req.file?.path;
 
   if (!avatarLocalpath) {
-    throw new ApiError(402, "avatar file is required");
+    throw new ApiError(400, "avatar file is required");
   }
 
   const avatar = await uploadOnCloudinary(avatarLocalpath);
@@ -35,7 +33,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
   console.log(avatar);
 
   if (!avatar) {
-    throw new ApiError(403, "Avatar file is Required");
+    throw new ApiError(400, "Avatar file is Required");
   }
 
   const hashedPassword = await adminModel.hashPassword(password);
@@ -212,7 +210,7 @@ console.log("1");
     throw new ApiError(400, "all fields are required");
   }
 
-  const imageLocalpath = req.file?.buffer;
+  const imageLocalpath = req.file?.path;
 console.log(2);
 
   if (!imageLocalpath) {
